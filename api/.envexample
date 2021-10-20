@@ -1,0 +1,3 @@
+DB_USER=usuariodepostgres
+DB_PASSWORD=passwordDePostgres
+DB_HOST=localhost

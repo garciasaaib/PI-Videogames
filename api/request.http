@@ -1,0 +1,27 @@
+### Preloads
+GET http://localhost:3001/genre/pre HTTP/1.1
+###
+GET http://localhost:3001/platform/pre HTTP/1.1
+
+
+### Show second data
+GET http://localhost:3001/genre HTTP/1.1
+###
+GET http://localhost:3001/platform HTTP/1.1
+
+
+
+###show main data
+GET http://localhost:3001/videogame HTTP/1.1
+### 
+GET http://localhost:3001/videogame?name=evangelion HTTP/1.1
+###
+GET http://localhost:3001/videogame/3328 HTTP/1.1
+###
+POST http://localhost:3001/videogame HTTP/1.1
+content-type: application/json
+
+{
+    "name": "sample",
+    "time": "Wed, 21 Oct 2015 18:27:50 GMT"
+} 

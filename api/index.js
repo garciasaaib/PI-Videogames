@@ -18,11 +18,16 @@
 //                       `=---='
 //     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 const server = require('./src/app.js');
+const { preLoadGenreList } = require('./src/controllers/genres.controller.js');
+const { preLoadPlatformList } = require('./src/controllers/platform.controller.js');
 const { conn } = require('./src/db.js');
+
 
 // Syncing all the models at once.
 conn.sync({ force: true }).then(() => {
-  server.listen(3001, () => {
+  server.listen(3001, async () => {
+    await preLoadPlatformList()
+    await preLoadGenreList()
     console.log('%s listening at 3001'); // eslint-disable-line no-console
   });
 });
