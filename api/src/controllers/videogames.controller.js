@@ -5,6 +5,44 @@ const { API_BASE, API_KEY } = process.env
 const url = (route, query) =>
   `${API_BASE}${route}?${query ? 'search=' + query + '&' : ''}key=${API_KEY}`
 
+
+// FORMAT API VIDEOGAMES
+const formatApiVideogames = (array) => array.map(
+  (data) => {
+    return {
+      id: data.id,
+      name: data.name,
+      rating: data.rating,
+      image: data.background_image,
+      genres: data.genres.map(genre => ({
+        id: genre.id,
+        name: genre.name
+      })),
+      platforms: data.platforms.map(({ platform }) => ({
+        id: platform.id,
+        name: platform.name
+      })),
+    }
+  })
+
+
+const giveOrder = async (allVideogames, order, rating) => {
+  // ALFABETIC ORDER
+  if (order === "des")
+    allVideogames = await allVideogames.sort((a, b) =>
+      b.name.toLowerCase().localCompare(a.name.toLowerCase()))
+  else if (order === "asc")
+    allVideogames = await allVideogames.sort((a, b) =>
+      a.name.toLowerCase().localCompare(b.name.toLowerCase()))
+  // RATING ORDER 
+  if (rating === "des")
+    allVideogames = await allVideogames.sort((a, b) =>
+      b.rating.localCompare(a.rating))
+  else if (rating === "asc")
+    allVideogames = await allVideogames.sort((a, b) =>
+      a.rating.localCompare(b.rating))
+  return allVideogames
+}
 /** Metodo para crear controller
  * crear la funcion asincrona estableciendo el nombre y los parametros de la petucion (req, res, next)
  * crear el manejador de error con try catch
@@ -17,34 +55,20 @@ async function getVideogameList(req, res, next) {
     // CREATE URL
     //itera hasta que el array api videogames tenga la longitud de 100 o lo que venga en limit
     let apiVideogames = [] // juegos obtenidos en la
-    const { name, limit = 100 } = req.query
-    let nextUrl = url('/games', name)
+    let {
+      // search
+      name,
+      // pagination
+      page = 1,
+      // order
+      rating,
+      order,
+    } = req.query
+    let videogamePerPage = 15,
+      limit = 100,
+      apiCalls = 0
 
-    // API VIDEOGAMES 
-    while (apiVideogames.length < limit) {
-      let { data: { results, next } } = await axios.get(nextUrl)
-      // da formato al resultado y lo agrega a la variable apiVideogames
-      apiVideogames = apiVideogames.concat(results.map(
-        (data) => {
-          return {
-            id: data.id,
-            name: data.name,
-            rating: data.rating,
-            image: data.background_image,
-            genres: data.genres.map(genre => ({
-              id: genre.id,
-              name: genre.name
-            })),
-            platforms: data.platforms.map(({ platform }) => ({
-              id: platform.id,
-              name: platform.name
-            })),
-          }
-        }))
-      // si no hay next sale del bucle, de lo contrario asigna el nuevo next
-      if (!next) break;
-      nextUrl = next
-    }
+
     // DB VIDEOGAMES
     let dbOptions = {
       attributes: ["id", "name", "rating", "image"],
@@ -53,13 +77,55 @@ async function getVideogameList(req, res, next) {
         { model: Platform, through: { attributes: [] } }
       ]
     }
-    if (name) dbOptions.where = {
-      name: { [Op.iLike]: `%${name}` }
+    if (name) dbOptions.where = { name: { [Op.iLike]: `%${name}` } }
+    let dbVideogames = await Videogame.findAll(dbOptions)
+
+    // HOW MANY API VIDEOGAMES DO I NEED
+    /**
+     * videogamePerPage = 15
+     * page = 1
+     * videogameLengthNeeded = videogamePerPage * page
+     * 15 * 1 = 15
+     * 
+     * api = videogameLengthNeeded - dbVideogames.length
+     * 14 = 15 - 1
+     * 
+     * apiVideogames.length = 20
+     * 
+     * 
+     * apiVideogames.slice(0, 14).map()
+     */
+
+    // API VIDEOGAMES 
+    let nextUrl = url('/games', name)
+    console.log(nextUrl);
+    for (let i = 0; i < 5; i++) {
+      let { data: { results, next } } = await axios.get(nextUrl)
+      // da formato al resultado y lo agrega a la variable apiVideogames
+      // if(i === 4)
+        apiVideogames = apiVideogames.concat(results)
+      console.log(apiVideogames.length)
+
+      
+
+      // si no hay next sale del bucle, de lo contrario asigna el nuevo next
+      if (!next) break;
+      nextUrl = next
     }
 
-    let dbVideogames = await Videogame.findAll(dbOptions)
-    // ALL VIDEOGAMES & RESPONSE
+
+
+
+    // ALL VIDEOGAMES
     let allVideogames = dbVideogames.concat(apiVideogames)
+
+
+    // PAGINATION
+    // page = page || 1
+    // allVideogames = allVideogames
+    //   .slice((videogamePerPage * (page - 1)), (videogamePerPage * (page - 1) + videogamePerPage))
+
+    // RESPONSE
     res.json({ api: apiVideogames.length, db: dbVideogames.length, data: allVideogames })
   } catch (error) { next(error.message) }
 }
