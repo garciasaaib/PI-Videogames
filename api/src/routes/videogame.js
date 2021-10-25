@@ -4,6 +4,6 @@ const router = Router()
 
 router.get('/', videogamesController.getVideogameList)
 router.get('/:id', videogamesController.getVideogameById)
-router.get('/', videogamesController.createVideogame)
+router.post('/', videogamesController.createVideogame)
 
 module.exports = router

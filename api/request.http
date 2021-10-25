@@ -18,10 +18,17 @@ GET http://localhost:3001/videogame?name=evangelion HTTP/1.1
 ###
 GET http://localhost:3001/videogame/3328 HTTP/1.1
 ###
+GET http://localhost:3001/videogame/76b7070d-edee-4685-82d3-48d284601685 HTTP/1.1
+###
 POST http://localhost:3001/videogame HTTP/1.1
 content-type: application/json
 
 {
-    "name": "sample",
-    "time": "Wed, 21 Oct 2015 18:27:50 GMT"
+    "name": "Sample Game",
+    "description": "Un juego ahi todo culero",
+    "released": "2015-08-18",
+    "rating": 4,
+    "platforms": [7, 1],
+    "genres": [4, 3],
+    "image": "https://media.rawg.io/media/games/618/618c2031a07bbff6b4f611f10b6bcdbc.jpg"
 } 

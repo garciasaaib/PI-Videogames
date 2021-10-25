@@ -19,7 +19,7 @@ module.exports = (sequelize) => {
       type: DataTypes.TEXT,
     },
     released: {
-      type: DataTypes.DATE,
+      type: DataTypes.STRING,
     },
     rating: {
       type: DataTypes.DECIMAL,
